@@ -30,6 +30,52 @@ int add_vertex(Graph* const graph, char* const name){
     return RES_OK;
 }
 
+int delete_vertex(Graph* const graph, char* const name){
+    int* res = find_vertices(graph, (const char**)&name, 1);
+    if (!res){
+        printf("Error in delete_vertex()\n");
+        return RES_ERR;
+    }
+
+    if (res[0] == RES_FIND_ERR){
+        printf("Person with this name doesn't exists\n");
+        free(res);
+        return RES_OK;
+    }
+
+    Node* cur = (graph->adjList + res[0])->list;
+    Node* tmp = NULL;
+    int delete_res = 0;
+    while (cur){
+        tmp = cur->next;
+        delete_res = delete_edge(graph, (graph->adjList + res[0])->name,
+                                 (graph->adjList + cur->ind)->name);
+        if (delete_res == RES_ERR){
+            printf("Error in delete_vertex()\n");
+            return RES_ERR;
+        }
+        cur = tmp;
+    }
+
+    free((graph->adjList + res[0])->name);
+    (graph->adjList + res[0])->name = NULL;
+    free(res);
+    return RES_OK;
+}
+
+/*
+void move_elems(Graph* const graph, int a){
+    for (int i = a; i < graph->vertices - 1; ++i) {
+        (graph->adjList)[i] = (graph->adjList)[i+1];
+    }
+    --(graph->vertices);
+    graph->adjList = (Vertex*) realloc(graph->adjList, (graph->vertices)*sizeof(Vertex));
+    if (!(graph->adjList) && graph->vertices){
+        printf("Error in move_elems()\n");
+    }
+}
+ */
+
 int add_edge(Graph* const graph, char* const name1, char* const name2, const int weight){
     int* res = valid_vertices(graph, name1, name2);
     if (!res){ return RES_OK; }
@@ -122,6 +168,7 @@ void show(Graph* const graph){
     Node* cur_node = NULL;
     for (int i = 0; i < graph->vertices; ++i) {
         cur_vertex = graph->adjList + i;
+        if (!(cur_vertex->name)){ continue; }
         printf("%s: ", cur_vertex->name);
 
         cur_node = cur_vertex->list;
@@ -162,6 +209,7 @@ int* find_vertices(Graph* const graph, const char** const arr, const int size){
 
     for (int i = 0; i < graph->vertices; ++i) {
         for (int j = 0; j < size; ++j) {
+            if (!((graph->adjList)[i].name)){ continue; }
             if (strcmp((graph->adjList)[i].name, arr[j]) == 0){ res[j] = i; }
         }
 
