@@ -75,7 +75,44 @@ int D_AddEdge(Graph* const graph){
     return RES_OK;
 }
 
-int D_DeleteEdge(Graph* const graph){}
+int D_DeleteEdge(Graph* const graph){
+    char* name1 = NULL;
+    char* name2 = NULL;
+    char buf[BUF_SIZE];
+
+    buf[0] = '\0';
+    scanf("%*[^\n]");
+    getchar();
+    printf("Enter first person name:\n");
+    while (!strlen(buf)){
+        if (!fgets(buf, BUF_SIZE-1, stdin)) {
+            return RES_EOF;
+        }
+        buf[strlen(buf)-1] = '\0';
+    }
+    name1 = strdup(buf);
+
+    buf[0] = '\0';
+    printf("Enter second person name:\n");
+    while (!strlen(buf)){
+        if (!fgets(buf, BUF_SIZE-1, stdin)) {
+            return RES_EOF;
+        }
+        buf[strlen(buf)-1] = '\0';
+    }
+    name2 = strdup(buf);
+
+    int res = delete_edge(graph, name1, name2);
+    if (res == RES_ERR){
+        printf("Error in D_AddEdge()\n");
+        return RES_ERR;
+    }
+    printf("OK\n");
+
+    free(name1);
+    free(name2);
+    return RES_OK;
+}
 int D_DeleteVertex(Graph* const graph){}
 int D_EditVertex(Graph* const graph){}
 int D_EditEdge(Graph* const graph){}

@@ -12,7 +12,6 @@ typedef struct Node{
 }Node;
 
 typedef struct Vertex{
-    int ind;
     char* name;
     Node* list;
 }Vertex;

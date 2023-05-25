@@ -26,35 +26,15 @@ int add_vertex(Graph* const graph, char* const name){
     }
     ++(graph->vertices);
     (graph->adjList)[graph->vertices-1].name = name;
-    (graph->adjList)[graph->vertices-1].ind = graph->vertices-1;
     (graph->adjList)[graph->vertices-1].list = NULL;
     return RES_OK;
 }
 
 int add_edge(Graph* const graph, char* const name1, char* const name2, const int weight){
-    char** arr = (char**) malloc(2 * sizeof(char*));
-    if (!arr){
-        printf("Error in add_edge()\n");
-        return RES_ERR;
-    }
-    arr[0] = name1;
-    arr[1] = name2;
+    int* res = valid_vertices(graph, name1, name2);
+    if (!res){ return RES_OK; }
 
-    int* res = find_vertices(graph, (const char**)arr, 2);
-    if (!res){
-        printf("Error in add_edge()\n");
-        return RES_ERR;
-    }
-    free(arr);
-
-    if ((res[0] == RES_FIND_ERR) || (res[1] == RES_FIND_ERR)){
-        if (res[0] == RES_FIND_ERR){ printf("Person with name %s doesn't exist\n", name1); }
-        else { printf("Person with name \"%s\" doesn't exist\n", name2); }
-        free(res);
-        return RES_OK;
-    }
-
-    if (find_edge(graph, res)){
+    if (find_edge(graph, res, NULL)){
         printf("Edge between %s and \"%s\" already exists\n", name1, name2);
         free(res);
         return RES_OK;
@@ -78,6 +58,63 @@ int add_edge(Graph* const graph, char* const name1, char* const name2, const int
 
     free(res);
     return RES_OK;
+}
+
+int delete_edge(Graph* const graph, char* const name1, char* const name2){
+    int* res = valid_vertices(graph, name1, name2);
+    if (!res){ return RES_OK; }
+
+    Node* prev1 = NULL;
+    Node* prev2 = NULL;
+    Node* cur1 = find_edge(graph, res, &prev1);
+    if (!cur1){
+        printf("Edge between \"%s\" and \"%s\" doesn't exist\n", name1, name2);
+        free(res);
+        return RES_OK;
+    }
+    int tmp = res[0];
+    res[0] = res[1];
+    res[1] = tmp;
+    Node* cur2 = find_edge(graph, res, &prev2);
+    if (!cur2){
+        printf("Error in delete_edge()\n");
+        return RES_ERR;
+    }
+
+    if (prev1){ prev1->next = cur1->next; }
+    else { (graph->adjList + res[1])->list = cur1->next; }
+    if (prev2){ prev2->next = cur2->next; }
+    else { (graph->adjList + res[0])->list = cur2->next; }
+    free(cur1);
+    free(cur2);
+
+    free(res);
+    return RES_OK;
+}
+
+int* valid_vertices(Graph* const graph, char* const name1, char* const name2){
+    char** arr = (char**) malloc(2 * sizeof(char*));
+    if (!arr){
+        printf("Error in add_edge()\n");
+        return NULL;
+    }
+    arr[0] = name1;
+    arr[1] = name2;
+
+    int* res = find_vertices(graph, (const char**)arr, 2);
+    if (!res){
+        printf("Error in add_edge()\n");
+        return NULL;
+    }
+    free(arr);
+
+    if ((res[0] == RES_FIND_ERR) || (res[1] == RES_FIND_ERR)){
+        if (res[0] == RES_FIND_ERR){ printf("Person with name %s doesn't exist\n", name1); }
+        else { printf("Person with name \"%s\" doesn't exist\n", name2); }
+        free(res);
+        return NULL;
+    }
+    return res;
 }
 
 void show(Graph* const graph){
@@ -140,8 +177,13 @@ int* find_vertices(Graph* const graph, const char** const arr, const int size){
     return res;
 }
 
-Node* find_edge(Graph* const graph, const int* const arr){
+Node* find_edge(Graph* const graph, const int* const arr, Node** prev){
     Node* cur = (graph->adjList)[arr[0]].list;
-    while (cur && (cur->ind != arr[1])){ cur = cur->next; }
+    Node* pr = NULL;
+    while (cur && (cur->ind != arr[1])){
+        pr = cur;
+        cur = cur->next;
+    }
+    if (prev){ *prev = pr; }
     return cur;
 }
