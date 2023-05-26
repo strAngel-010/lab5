@@ -38,7 +38,7 @@ int D_AddEdge(Graph* const graph){
     buf[0] = '\0';
     scanf("%*[^\n]");
     getchar();
-    printf("Enter first person name:\n");
+    printf("Enter first person's name:\n");
     while (!strlen(buf)){
         if (!fgets(buf, BUF_SIZE-1, stdin)) {
             return RES_EOF;
@@ -48,7 +48,7 @@ int D_AddEdge(Graph* const graph){
     name1 = strdup(buf);
 
     buf[0] = '\0';
-    printf("Enter second person name:\n");
+    printf("Enter second person's name:\n");
     while (!strlen(buf)){
         if (!fgets(buf, BUF_SIZE-1, stdin)) {
             return RES_EOF;
@@ -83,7 +83,7 @@ int D_DeleteEdge(Graph* const graph){
     buf[0] = '\0';
     scanf("%*[^\n]");
     getchar();
-    printf("Enter first person name:\n");
+    printf("Enter first person's name:\n");
     while (!strlen(buf)){
         if (!fgets(buf, BUF_SIZE-1, stdin)) {
             return RES_EOF;
@@ -93,7 +93,7 @@ int D_DeleteEdge(Graph* const graph){
     name1 = strdup(buf);
 
     buf[0] = '\0';
-    printf("Enter second person name:\n");
+    printf("Enter second person's name:\n");
     while (!strlen(buf)){
         if (!fgets(buf, BUF_SIZE-1, stdin)) {
             return RES_EOF;
@@ -120,7 +120,7 @@ int D_DeleteVertex(Graph* const graph){
     buf[0] = '\0';
     scanf("%*[^\n]");
     getchar();
-    printf("Enter first person name:\n");
+    printf("Enter person's name:\n");
     while (!strlen(buf)){
         if (!fgets(buf, BUF_SIZE-1, stdin)) {
             return RES_EOF;
@@ -139,13 +139,98 @@ int D_DeleteVertex(Graph* const graph){
     free(name);
     return RES_OK;
 }
-int D_EditVertex(Graph* const graph){}
-int D_EditEdge(Graph* const graph){}
+int D_EditVertex(Graph* const graph){
+    char* name1 = NULL;
+    char* name2 = NULL;
+    int weight = 0;
+    char buf[BUF_SIZE];
+
+    buf[0] = '\0';
+    scanf("%*[^\n]");
+    getchar();
+    printf("Enter name:\n");
+    while (!strlen(buf)){
+        if (!fgets(buf, BUF_SIZE-1, stdin)) {
+            return RES_EOF;
+        }
+        buf[strlen(buf)-1] = '\0';
+    }
+    name1 = strdup(buf);
+
+    buf[0] = '\0';
+    printf("Enter new name:\n");
+    while (!strlen(buf)){
+        if (!fgets(buf, BUF_SIZE-1, stdin)) {
+            return RES_EOF;
+        }
+        buf[strlen(buf)-1] = '\0';
+    }
+    name2 = strdup(buf);
+
+    int res = edit_vertex(graph, name1, name2);
+    if (res == RES_ERR){
+        printf("Error in D_AddEdge()\n");
+        return RES_ERR;
+    }
+    printf("OK\n");
+
+    free(name1);
+    return RES_OK;
+}
+
+int D_EditEdge(Graph* const graph){
+    char* name1 = NULL;
+    char* name2 = NULL;
+    int weight = 0;
+    char buf[BUF_SIZE];
+
+    buf[0] = '\0';
+    scanf("%*[^\n]");
+    getchar();
+    printf("Enter first person's name:\n");
+    while (!strlen(buf)){
+        if (!fgets(buf, BUF_SIZE-1, stdin)) {
+            return RES_EOF;
+        }
+        buf[strlen(buf)-1] = '\0';
+    }
+    name1 = strdup(buf);
+
+    buf[0] = '\0';
+    printf("Enter second person's name:\n");
+    while (!strlen(buf)){
+        if (!fgets(buf, BUF_SIZE-1, stdin)) {
+            return RES_EOF;
+        }
+        buf[strlen(buf)-1] = '\0';
+    }
+    name2 = strdup(buf);
+
+    printf("Enter weight:\n");
+    if (getIntInInterval(&weight, MIN_WEIGHT, MAX_WEIGHT) == RES_EOF){
+        return RES_EOF;
+    }
+
+    int res = edit_edge(graph, name1, name2, weight);
+    if (res == RES_ERR){
+        printf("Error in D_AddEdge()\n");
+        return RES_ERR;
+    }
+    printf("OK\n");
+
+    free(name1);
+    free(name2);
+    return RES_OK;
+}
 
 int D_Show(Graph* const graph){
     show(graph);
     return RES_OK;
 }
 
-int D_Incision(Graph* const graph){}
+int D_StronglyConnectedComponents(Graph* const graph){
+    int res = strongly_connected_components(graph);
+    if (res == RES_ERR){ printf("Error in D_StronglyConnectedComponents()\n"); }
+    return res;
+}
 int D_Traverse(Graph* const graph){}

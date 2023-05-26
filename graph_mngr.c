@@ -30,6 +30,41 @@ int add_vertex(Graph* const graph, char* const name){
     return RES_OK;
 }
 
+int edit_vertex(Graph* const graph, char* const name1, char* const name2){
+    int* res1 = find_vertices(graph, (const char**)&name1, 1);
+    if (!res1){
+        printf("Error in add_vertex()\n");
+        return RES_ERR;
+    }
+
+    if (res1[0] == RES_FIND_ERR){
+        printf("Person with name \"%s\" doesn't exist\n", name1);
+        free(res1);
+        free(name2);
+        return RES_OK;
+    }
+
+    int* res2 = find_vertices(graph, (const char**)&name2, 1);
+    if (!res2){
+        printf("Error in add_vertex()\n");
+        return RES_ERR;
+    }
+
+    if (res2[0] != RES_FIND_ERR){
+        printf("Person with name \"%s\" already exists\n", name2);
+        free(res1);
+        free(res2);
+        free(name2);
+        return RES_OK;
+    }
+    free(res2);
+
+    free((graph->adjList)[res1[0]].name);
+    (graph->adjList)[res1[0]].name = name2;
+    free(res1);
+    return RES_OK;
+}
+
 int delete_vertex(Graph* const graph, char* const name){
     int* res = find_vertices(graph, (const char**)&name, 1);
     if (!res){
@@ -38,7 +73,7 @@ int delete_vertex(Graph* const graph, char* const name){
     }
 
     if (res[0] == RES_FIND_ERR){
-        printf("Person with this name doesn't exists\n");
+        printf("Person with this name doesn't exist\n");
         free(res);
         return RES_OK;
     }
@@ -62,19 +97,6 @@ int delete_vertex(Graph* const graph, char* const name){
     free(res);
     return RES_OK;
 }
-
-/*
-void move_elems(Graph* const graph, int a){
-    for (int i = a; i < graph->vertices - 1; ++i) {
-        (graph->adjList)[i] = (graph->adjList)[i+1];
-    }
-    --(graph->vertices);
-    graph->adjList = (Vertex*) realloc(graph->adjList, (graph->vertices)*sizeof(Vertex));
-    if (!(graph->adjList) && graph->vertices){
-        printf("Error in move_elems()\n");
-    }
-}
- */
 
 int add_edge(Graph* const graph, char* const name1, char* const name2, const int weight){
     int* res = valid_vertices(graph, name1, name2);
@@ -103,6 +125,28 @@ int add_edge(Graph* const graph, char* const name1, char* const name2, const int
     node2->weight = weight;
 
     free(res);
+    return RES_OK;
+}
+
+int edit_edge(Graph* const graph, char* const name1, char* const name2, const int weight){
+    int* res = valid_vertices(graph, name1, name2);
+    if (!res){ return RES_OK; }
+
+    Node* cur1 = find_edge(graph, res, NULL);
+    if (!cur1){
+        printf("Edge between \"%s\" and \"%s\" doesn't exist\n", name1, name2);
+        free(res);
+        return RES_OK;
+    }
+    Node* cur2 = find_edge(graph, res, NULL);
+    if (!cur2){
+        printf("Error in delete_edge()\n");
+        return RES_ERR;
+    }
+
+    free(res);
+    cur1->weight = weight;
+    cur2->weight = weight;
     return RES_OK;
 }
 
@@ -136,6 +180,49 @@ int delete_edge(Graph* const graph, char* const name1, char* const name2){
 
     free(res);
     return RES_OK;
+}
+
+int strongly_connected_components(Graph* const graph){
+    int* color = (int*) malloc((graph->vertices) * sizeof(int));
+    int* pred = (int*) malloc((graph->vertices) * sizeof(int));
+    if (!pred || !color){
+        printf("Error in strongly_connected_components()\n");
+        return RES_ERR;
+    }
+
+    for (int i = 0; i < graph->vertices; ++i) {
+        color[i] = WHITE;
+        pred[i] = NULL_PREDECESSOR;
+    }
+
+    int count = 1;
+    for (int i = 0; i < graph->vertices; ++i) {
+        if (!((graph->adjList + i)->name)){ continue; }
+        if (color[i] == WHITE){
+            printf("Group %d: ", count);
+            dfs_visit(graph, i, color, pred);
+            printf("\n");
+            ++count;
+        }
+    }
+    free(color);
+    free(pred);
+    return RES_OK;
+}
+
+void dfs_visit(Graph* const graph, int vertex_ind, int* const color, int* const pred){
+    color[vertex_ind] = GREY;
+    printf("\"%s\"", (graph->adjList + vertex_ind)->name);
+    Node* cur = (graph->adjList + vertex_ind)->list;
+    while (cur){
+        if ((color[cur->ind] == WHITE) && (cur->weight > 0)){
+            printf(", ");
+            pred[cur->ind] = vertex_ind;
+            dfs_visit(graph, cur->ind, color, pred);
+        }
+        cur = cur->next;
+    }
+    color[vertex_ind] = BLACK;
 }
 
 int* valid_vertices(Graph* const graph, char* const name1, char* const name2){
@@ -235,3 +322,5 @@ Node* find_edge(Graph* const graph, const int* const arr, Node** prev){
     if (prev){ *prev = pr; }
     return cur;
 }
+
+

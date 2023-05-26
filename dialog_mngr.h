@@ -17,7 +17,7 @@ int D_DeleteVertex(Graph* const graph);
 int D_EditVertex(Graph* const graph);
 int D_EditEdge(Graph* const graph);
 int D_Show(Graph* const graph);
-int D_Incision(Graph* const graph);
+int D_StronglyConnectedComponents(Graph* const graph);
 int D_Traverse(Graph* const graph);
 
 #endif //LAB5_DIALOG_MNGR_H
