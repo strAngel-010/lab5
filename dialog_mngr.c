@@ -233,4 +233,74 @@ int D_StronglyConnectedComponents(Graph* const graph){
     if (res == RES_ERR){ printf("Error in D_StronglyConnectedComponents()\n"); }
     return res;
 }
-int D_Traverse(Graph* const graph){}
+
+int D_ShowRouteBetweenPeople(Graph* const graph){
+    char* name1 = NULL;
+    char* name2 = NULL;
+    int weight = 0;
+    char buf[BUF_SIZE];
+
+    buf[0] = '\0';
+    scanf("%*[^\n]");
+    getchar();
+    printf("Enter first person's name:\n");
+    while (!strlen(buf)){
+        if (!fgets(buf, BUF_SIZE-1, stdin)) {
+            return RES_EOF;
+        }
+        buf[strlen(buf)-1] = '\0';
+    }
+    name1 = strdup(buf);
+
+    buf[0] = '\0';
+    printf("Enter second person's name:\n");
+    while (!strlen(buf)){
+        if (!fgets(buf, BUF_SIZE-1, stdin)) {
+            return RES_EOF;
+        }
+        buf[strlen(buf)-1] = '\0';
+    }
+    name2 = strdup(buf);
+
+    int res = show_route_between_people(graph, name1, name2);
+    if (res == RES_ERR){
+        printf("Error in D_ShowRouteBetweenPeople()\n");
+        return RES_ERR;
+    }
+    printf("OK\n");
+    free(name1);
+    free(name2);
+    return RES_OK;
+}
+
+int D_Traverse(Graph* const graph){
+    char* name = NULL;
+    int max_route_len = 0;
+    char buf[BUF_SIZE];
+
+    buf[0] = '\0';
+    scanf("%*[^\n]");
+    getchar();
+    printf("Enter person's name:\n");
+    while (!strlen(buf)){
+        if (!fgets(buf, BUF_SIZE-1, stdin)) {
+            return RES_EOF;
+        }
+        buf[strlen(buf)-1] = '\0';
+    }
+    name = strdup(buf);
+
+    printf("Enter max route length:\n");
+    if (getIntInInterval(&max_route_len, 1, INT_MAX) == RES_EOF){
+        return RES_EOF;
+    }
+
+    int res = traverse(graph, name, max_route_len);
+    if (res == RES_ERR){
+        printf("Error in D_Traverse()\n");
+        return RES_ERR;
+    }
+    free(name);
+    printf("OK\n");
+    return RES_OK;
+}

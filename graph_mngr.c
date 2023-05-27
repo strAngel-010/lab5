@@ -184,45 +184,132 @@ int delete_edge(Graph* const graph, char* const name1, char* const name2){
 
 int strongly_connected_components(Graph* const graph){
     int* color = (int*) malloc((graph->vertices) * sizeof(int));
-    int* pred = (int*) malloc((graph->vertices) * sizeof(int));
-    if (!pred || !color){
+    if (!color){
         printf("Error in strongly_connected_components()\n");
         return RES_ERR;
     }
-
-    for (int i = 0; i < graph->vertices; ++i) {
-        color[i] = WHITE;
-        pred[i] = NULL_PREDECESSOR;
-    }
+    for (int i = 0; i < graph->vertices; ++i) { color[i] = WHITE; }
 
     int count = 1;
     for (int i = 0; i < graph->vertices; ++i) {
         if (!((graph->adjList + i)->name)){ continue; }
         if (color[i] == WHITE){
             printf("Group %d: ", count);
-            dfs_visit(graph, i, color, pred);
+            dfs_visit(graph, i, color, 0, 0);
             printf("\n");
             ++count;
         }
     }
     free(color);
+    return RES_OK;
+}
+
+int show_route_between_people(Graph* const graph, char* const name1, char* const name2){
+    int* res = valid_vertices(graph, name1, name2);
+    if (!res){ return RES_OK; }
+
+    int* dist = (int*) malloc((graph->vertices) * sizeof(int));
+    int* pred = (int*) malloc((graph->vertices) * sizeof(int));
+    if (!pred || !dist){
+        printf("Error in strongly_connected_components()\n");
+        return RES_ERR;
+    }
+
+    for (int i = 0; i < graph->vertices; ++i) {
+        dist[i] = INT_MAX;
+        pred[i] = NULL_PREDECESSOR;
+    }
+    dist[res[0]] = 0;
+
+    Queue queue = {NULL};
+    int queue_res = add_all_vertices(&queue, graph);
+    if (queue_res == RES_ERR){
+        printf("Error in strongly_connected_components()\n");
+        return RES_ERR;
+    }
+
+    dijkstra(graph, &queue, dist, pred);
+    if (dist[res[1]] == INT_MAX){ printf("No route between \"%s\" and \"%s\"\n", name1, name2); }
+    else {
+        print_route(graph, res[1], pred);
+        printf("\n");
+    }
+    free(res);
+    free(dist);
     free(pred);
     return RES_OK;
 }
 
-void dfs_visit(Graph* const graph, int vertex_ind, int* const color, int* const pred){
+void dijkstra(Graph* const graph, Queue* const queue, int* const dist, int* const pred){
+    int vertex_ind = 0;
+    Node* node = NULL;
+    while (queue->head){
+        vertex_ind = extract_min(queue, dist);
+        node = (graph->adjList + vertex_ind)->list;
+        while (node) {
+            if ((node->weight > 0) && (dist[node->ind] > dist[vertex_ind] + 1)) {
+                dist[node->ind] = dist[vertex_ind] + 1;
+                pred[node->ind] = vertex_ind;
+            }
+            node = node->next;
+        }
+    }
+}
+
+void print_route(Graph* const graph, const int vertex_ind, int* const pred){
+    if (pred[vertex_ind] == NULL_PREDECESSOR){
+        printf("\"%s\"", (graph->adjList + vertex_ind)->name);
+        return;
+    }
+    print_route(graph, pred[vertex_ind], pred);
+    printf(" --> \"%s\"", (graph->adjList + vertex_ind)->name);
+}
+
+void dfs_visit(Graph* const graph, int vertex_ind, int* const color, int max_route_len, int cur_route_len){
     color[vertex_ind] = GREY;
     printf("\"%s\"", (graph->adjList + vertex_ind)->name);
+    if (max_route_len && (max_route_len == cur_route_len)){ return; }
+
     Node* cur = (graph->adjList + vertex_ind)->list;
     while (cur){
-        if ((color[cur->ind] == WHITE) && (cur->weight > 0)){
+        if (!max_route_len && (color[cur->ind] == WHITE) && (cur->weight > 0)) {
             printf(", ");
-            pred[cur->ind] = vertex_ind;
-            dfs_visit(graph, cur->ind, color, pred);
+            dfs_visit(graph, cur->ind, color, max_route_len, cur_route_len);
+        } else if (color[cur->ind] == WHITE){
+            printf(", ");
+            dfs_visit(graph, cur->ind, color, max_route_len, cur_route_len+1);
         }
         cur = cur->next;
     }
     color[vertex_ind] = BLACK;
+}
+
+int traverse(Graph* const graph, char* const name, int max_route_len){
+    int* res = find_vertices(graph, &name, 1);
+    if (!res){
+        printf("Error in add_vertex()\n");
+        return RES_ERR;
+    }
+
+    if (res[0] == RES_FIND_ERR){
+        printf("Person with this name doesn't exist\n");
+        free(res);
+        return RES_OK;
+    }
+
+    int* color = (int*) malloc((graph->vertices) * sizeof(int));
+    if (!color){
+        printf("Error in strongly_connected_components()\n");
+        return RES_ERR;
+    }
+    for (int i = 0; i < graph->vertices; ++i) { color[i] = WHITE; }
+
+    dfs_visit(graph, res[0], color, max_route_len, 0);
+    printf("\n");
+
+    free(color);
+    free(res);
+    return RES_OK;
 }
 
 int* valid_vertices(Graph* const graph, char* const name1, char* const name2){
